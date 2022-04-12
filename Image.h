@@ -42,8 +42,8 @@ class Image
       pixels = new Rgb[w * h];
    }
    bool savePPM(string filename);
-   bool load(const string& filename);
-   bool loadRaw(const string& filename);
+   bool load(const string &filename);
+   bool loadRaw(const string &filename);
    void filterRed();
    void filterGreen();
    void filterBlue();
