@@ -22,11 +22,6 @@ bool Image::load(const string &filename)
 
       ifs >> header >> w >> h >> b;
 
-      cout << "Header: " << header << endl;
-      cout << "Width: " << w << endl;
-      cout << "Height: " << h << endl;
-      cout << "Bits per pixel: " << b << endl;
-
       if (strcmp(header.c_str(), "P6") != 0)
          throw "Not a PPM file";
 
@@ -75,7 +70,7 @@ bool Image::loadRaw(const string &filename)
       this->pixels = new Rgb[w * h];
       ifs.ignore(256, '\n');
       unsigned char pix[3];
-      for (int i = 0; i < w * h; i++)
+      for (int i = 0; i < this->w * this->h; i++)
       {
          ifs.read(reinterpret_cast<char *>(pix), 3);
          this->pixels[i].r = pix[0];
@@ -90,7 +85,7 @@ bool Image::loadRaw(const string &filename)
       ifs.close();
       return false;
    }
-   return false;
+   return true;
 }
 
 bool Image::savePPM(string filename)
@@ -112,9 +107,9 @@ bool Image::savePPM(string filename)
 
       for (int i = 0; i < this->w * this->h; i++)
       {
-         pix[0] = static_cast<unsigned char>( this->pixels[i].r);
-         pix[1] = static_cast<unsigned char>( this->pixels[i].g);
-         pix[2] = static_cast<unsigned char>( this->pixels[i].b);
+         pix[0] = static_cast<unsigned char>(this->pixels[i].r);
+         pix[1] = static_cast<unsigned char>(this->pixels[i].g);
+         pix[2] = static_cast<unsigned char>(this->pixels[i].b);
          ofs.write(reinterpret_cast<char *>(pix), 3);
       }
 
@@ -131,29 +126,86 @@ bool Image::savePPM(string filename)
 
 void Image::filterRed()
 {
+   for (int i = 0; i < this->w * this->h; i++)
+   {
+      this->pixels[i].g = 0;
+      this->pixels[i].b = 0;
+   }
 }
+
 void Image::filterGreen()
 {
+   for (int i = 0; i < this->w * this->h; i++)
+   {
+      this->pixels[i].r = 0;
+      this->pixels[i].b = 0;
+   }
 }
+
 void Image::filterBlue()
 {
+   for (int i = 0; i < this->w * this->h; i++)
+   {
+      this->pixels[i].r = 0;
+      this->pixels[i].g = 0;
+   }
 }
 void Image::greyScale()
 {
+   for (int i = 0; i < this->w * this->h; i++)
+   {
+      int avg = (this->pixels[i].r + this->pixels[i].g + this->pixels[i].b) / 3;
+      this->pixels[i].r = avg;
+      this->pixels[i].g = avg;
+      this->pixels[i].b = avg;
+   }
 }
+
 void Image::flipHorizontal()
 {
+   for (int i = 0; i < this->h; i++)
+   {
+      for (int j = 0; j < this->w / 2; j++)
+      {
+         int tempIdx = i * this->w + j;
+         int targetIdx = i * this->w + (this->w - j - 1);
+         
+         Rgb temp = this->pixels[tempIdx];
+         this->pixels[tempIdx] = this->pixels[targetIdx];
+         this->pixels[targetIdx] = temp;
+      }
+   }
 }
+
 void Image::flipVertically()
 {
+   int imgPixelCount = this->w * this->h;
+   int pixelsArrLen = imgPixelCount - 1;
+
+   for (int i = 0; i < imgPixelCount / 2; i++)
+   {
+      Rgb temp = this->pixels[i];
+      this->pixels[i] = this->pixels[pixelsArrLen - i];
+      this->pixels[pixelsArrLen - i] = temp;
+   }
 }
+
+void Image::AdditionalFunction1()
+{
+   // negative
+   for (int i = 0; i < this->w * this->h; i++)
+   {
+      this->pixels[i].r = 255 - this->pixels[i].r;
+      this->pixels[i].g = 255 - this->pixels[i].g;
+      this->pixels[i].b = 255 - this->pixels[i].b;
+   }
+}
+
 void Image::AdditionalFunction2()
 {
 }
+
 void Image::AdditionalFunction3()
-{
-}
-void Image::AdditionalFunction1()
 {
 }
 
