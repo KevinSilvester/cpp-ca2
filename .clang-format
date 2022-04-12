@@ -1,0 +1,6 @@
+BasedOnStyle: Microsoft
+IndentWidth: 3
+ColumnLimit: 120
+TabWidth: 3
+ConstructorInitializerIndentWidth: 3
+ContinuationIndentWidth: 3
