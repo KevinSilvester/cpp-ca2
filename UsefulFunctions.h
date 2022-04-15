@@ -9,6 +9,8 @@
 #include <tchar.h>
 #include <windows.h>
 
+using std::string;
+
 int createWindow(HINSTANCE &hInstance, int &nCmdShow, HMENU &hMenubar);
 void dblBuffer(HWND hWnd, HDC hdc, LPRECT rcClientRect);
 void processMenu(HWND hWnd, WPARAM wParam);

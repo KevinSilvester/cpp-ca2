@@ -4,7 +4,8 @@
 #include <string.h>
 #include <windows.h>
 
-using namespace std;
+using std::string;
+
 // Global variables
 #define IDM_FILE_SAVE 1
 #define IDM_FILE_OPEN 2
@@ -21,6 +22,8 @@ using namespace std;
 #define IDM_EDIT_AD2 12
 #define IDM_EDIT_AD3 13
 #define IDM_FILE_LOAD_RAW 14
+#define IDM_EDIT_AD2_INC 15
+#define IDM_EDIT_AD2_DEC 16
 
 string current_file;
 string fileType;
@@ -33,7 +36,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
    HMENU hMenubar = CreateMenu(); // The main menu bar
    HMENU hMenu = CreateMenu();    // the file menu
-   HMENU Alter = CreateMenu();    // the edit menu
+   HMENU hAlter = CreateMenu();    // the edit menu
+   HMENU hSubMenu = CreatePopupMenu();  // the submenu for the edit menu
 
    // File menu
    AppendMenuW(hMenu, MF_STRING, 2, L"&Open ppm");
@@ -43,21 +47,25 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
    AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
    AppendMenuW(hMenu, MF_STRING, IDM_FILE_QUIT, L"&Quit");
 
+   // Brightness menu
+   AppendMenuW(hSubMenu, MF_STRING, IDM_EDIT_AD2_INC, L"&Increase Brightness");
+   AppendMenuW(hSubMenu, MF_STRING, IDM_EDIT_AD2_DEC, L"&Decrease Brightness");
+
    // Edit menu
-   AppendMenuW(Alter, MF_STRING, IDM_EDIT_Greyscale, L"&Greyscale");
-   AppendMenuW(Alter, MF_STRING, IDM_EDIT_FlipHorizontal, L"&Flip Horizontal");
-   AppendMenuW(Alter, MF_STRING, IDM_EDIT_FlipVertical, L"&Flip Vertical");
-   AppendMenuW(Alter, MF_STRING, IDM_EDIT_FilterRed, L"&Show Only Red");
-   AppendMenuW(Alter, MF_STRING, IDM_EDIT_FilterGreen, L"&Show Only Green");
-   AppendMenuW(Alter, MF_STRING, IDM_EDIT_FilterBlue, L"&Show Only Blue");
-   AppendMenuW(Alter, MF_SEPARATOR, 0, NULL);
-   AppendMenuW(Alter, MF_STRING, IDM_EDIT_AD1, L"&Additional Function 1 - Negative");
-   AppendMenuW(Alter, MF_STRING, IDM_EDIT_AD2, L"&Additional Function 2");
-   AppendMenuW(Alter, MF_STRING, IDM_EDIT_AD3, L"&Additional Function 3");
+   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_Greyscale, L"&Greyscale");
+   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_FlipHorizontal, L"&Flip Horizontal");
+   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_FlipVertical, L"&Flip Vertical");
+   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_FilterRed, L"&Show Only Red");
+   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_FilterGreen, L"&Show Only Green");
+   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_FilterBlue, L"&Show Only Blue");
+   AppendMenuW(hAlter, MF_SEPARATOR, 0, NULL);
+   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_AD1, L"&Additional Function 1 - Negative");
+   AppendMenuW(hAlter, MF_STRING | MF_POPUP, (UINT_PTR)hSubMenu, L"&Additional Function 2 - Brightness");
+   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_AD3, L"&Additional Function 3 - Blur");
 
    // Attach the menus to the menubar
    AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
-   AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)Alter, L"&Edit");
+   AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hAlter, L"&Edit");
 
    int ret = createWindow(hInstance, nCmdShow, hMenubar);
 
@@ -115,8 +123,11 @@ void processMenu(HWND hWnd, WPARAM wParam)
    case IDM_EDIT_AD1:
       image->AdditionalFunction1();
       break;
-   case IDM_EDIT_AD2:
-      image->AdditionalFunction2();
+   case IDM_EDIT_AD2_INC:
+      image->AdditionalFunction2(image->brightness::increase);
+      break;
+   case IDM_EDIT_AD2_DEC:
+      image->AdditionalFunction2(image->brightness::decrease);
       break;
    case IDM_EDIT_AD3:
       image->AdditionalFunction3();

@@ -7,27 +7,34 @@
 
 #ifndef SDLTEST_TGA_FILEHANDLER_H
 #define SDLTEST_TGA_FILEHANDLER_H
+#include "Colours.h"
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-using namespace std;
+#include <math.h>
+#include <string.h>
+
+using std::string;
+using std::ifstream;
+using std::ofstream;
+using std::ios;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::clamp;
+using std::min;
+using std::max;
+
 struct Rgb
 {
-   Rgb() : r(1), g(1), b(1)
-   {
-   }
-   Rgb(unsigned char rr) : r(rr), g(rr), b(rr)
-   {
-   }
-   Rgb(unsigned char rr, unsigned char gg, unsigned char bb) : r(rr), g(gg), b(bb)
-   {
-   }
+   Rgb() : r(1), g(1), b(1) {}
+   explicit Rgb(unsigned char rr) : r(rr), g(rr), b(rr) {}
+   Rgb(unsigned char rr, unsigned char gg, unsigned char bb) : r(rr), g(gg), b(bb) {}
    unsigned char r, g, b;
 };
 
 class Image
 {
-
    Image(const unsigned int _w, const unsigned int _h) : w(_w), h(_h), pixels(nullptr)
    {
       pixels = new Rgb[w * h];
@@ -41,7 +48,14 @@ class Image
    {
       pixels = new Rgb[w * h];
    }
-   bool savePPM(string filename);
+
+   enum brightness
+   {
+      increase,
+      decrease
+   };
+
+   bool savePPM(const string &filename);
    bool load(const string &filename);
    bool loadRaw(const string &filename);
    void filterRed();
@@ -51,8 +65,10 @@ class Image
    void flipHorizontal();
    void flipVertically();
    void AdditionalFunction1();
-   void AdditionalFunction2();
+   void AdditionalFunction2(const brightness &action);
    void AdditionalFunction3();
+
+
 
    /*Functions used in the GUI - DO NOT MODIFY */
    Rgb *getImage();
