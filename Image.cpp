@@ -296,20 +296,19 @@ void Image::AdditionalFunction3()
          {
             for (int kernelY = 0; kernelY < kernelSize; kernelY++)
             {
+               // the 'grid coordinates' of the pixel that is to be used by the kernel
+               int targetX = imgX + kernelX - 1,
+                   targetY = imgY + kernelY - 1;
+
                // avoid using edge pixels
-               if (
-                     imgX + kernelX - 1 >= 0 && 
-                     imgX + kernelX - 1 < this->w && 
-                     imgY + kernelY - 1 >= 0 &&
-                     imgY + kernelY - 1 < this->h
-                  )
+               if (targetX >= 0 && targetX < this->w && targetY >= 0 && targetY < this->h)
                {
                   // The selection of the pixels is easy to understand if the image is visualized as a grid.
                   // I get all the pixels around the target pixel (imgX * imgY) and I multiply the kernel value
                   // with the pixel value.
                   // This operation is done for each of the RGB values of 9 pixels (since a 3x3 matrix was used)
                   // around the target pixel.
-                  Rgb pixel = this->pixels[(imgY + kernelY - 1) * this->w + (imgX + kernelX - 1)];
+                  Rgb pixel = this->pixels[targetY * this->w + targetX];
                   int kernelValue = kernel[kernelX][kernelY];
 
                   kernelR += pixel.r * kernelValue;
