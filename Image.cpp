@@ -82,7 +82,7 @@ bool Image::loadRaw(const string &filename)
       }
       ifs.close();
    }
-   catch (const char *err)
+   catch (const string err)
    {
       fprintf(stderr, "Error: %s\n", err);
       ifs.close();
@@ -109,15 +109,15 @@ bool Image::savePPM(const string &filename)
 
       for (int i = 0; i < this->w * this->h; i++)
       {
-         pix[0] = static_cast<unsigned char>(this->pixels[i].r);
-         pix[1] = static_cast<unsigned char>(this->pixels[i].g);
-         pix[2] = static_cast<unsigned char>(this->pixels[i].b);
+         pix[0] = (unsigned char)this->pixels[i].r;
+         pix[1] = (unsigned char)this->pixels[i].g;
+         pix[2] = (unsigned char)this->pixels[i].b;
          ofs.write(reinterpret_cast<char *>(pix), 3);
       }
 
       ofs.close();
    }
-   catch (const char *err)
+   catch (const string err)
    {
       fprintf(stderr, "Error: %s\n", err);
       ofs.close();
@@ -218,46 +218,46 @@ void Image::AdditionalFunction2(const brightness &action)
 
    switch (action)
    {
-   case brightness::increase: {
-      for (int i = 0; i < this->w * this->h; i++)
+      case brightness::increase:
       {
-         rgb_t pixelR;
-         pixelR.r = static_cast<double>(this->pixels[i].r) / 255;
-         pixelR.g = static_cast<double>(this->pixels[i].g) / 255;
-         pixelR.b = static_cast<double>(this->pixels[i].b) / 255;
+         for (int i = 0; i < this->w * this->h; i++)
+         {
+            rgb_t pixelR;
+            pixelR.r = (double)this->pixels[i].r / 255;
+            pixelR.g = (double)this->pixels[i].g / 255;
+            pixelR.b = (double)this->pixels[i].b / 255;
 
-         hsv_t pixelH = col->rgb2hsv(pixelR);
-         pixelH.v = std::min((double)1, pixelH.v + steps);
+            hsv_t pixelH = col->rgb2hsv(pixelR);
+            pixelH.v = std::min((double)1, pixelH.v + steps);
 
-         rgb_t pixelR2 = col->hsv2rgb(pixelH);
+            rgb_t pixelR2 = col->hsv2rgb(pixelH);
 
-         // this->pixels[i] = Rgb(floor(pixelR2.r * 255), floor(pixelR2.g * 255), floor(pixelR2.b * 255));
-         this->pixels[i].r = std::clamp(pixelR2.r * 255, (double)0, (double)255);
-         this->pixels[i].g = std::clamp(pixelR2.g * 255, (double)0, (double)255);
-         this->pixels[i].b = std::clamp(pixelR2.b * 255, (double)0, (double)255);
+            this->pixels[i].r = std::clamp(pixelR2.r * 255, (double)0, (double)255);
+            this->pixels[i].g = std::clamp(pixelR2.g * 255, (double)0, (double)255);
+            this->pixels[i].b = std::clamp(pixelR2.b * 255, (double)0, (double)255);
+         }
+         break;
       }
-      break;
-   }
-   case brightness::decrease: {
-      for (int i = 0; i < this->w * this->h; i++)
+      case brightness::decrease:
       {
-         rgb_t pixelR;
-         pixelR.r = static_cast<double>(this->pixels[i].r) / 255;
-         pixelR.g = static_cast<double>(this->pixels[i].g) / 255;
-         pixelR.b = static_cast<double>(this->pixels[i].b) / 255;
+         for (int i = 0; i < this->w * this->h; i++)
+         {
+            rgb_t pixelR;
+            pixelR.r = (double)this->pixels[i].r / 255;
+            pixelR.g = (double)this->pixels[i].g / 255;
+            pixelR.b = (double)this->pixels[i].b / 255;
 
-         hsv_t pixelH = col->rgb2hsv(pixelR);
-         pixelH.v = std::max((double)0, pixelH.v - steps);
+            hsv_t pixelH = col->rgb2hsv(pixelR);
+            pixelH.v = std::max((double)0, pixelH.v - steps);
 
-         rgb_t pixelR2 = col->hsv2rgb(pixelH);
+            rgb_t pixelR2 = col->hsv2rgb(pixelH);
 
-         // this->pixels[i] = Rgb(floor(pixelR2.r * 255), floor(pixelR2.g * 255), floor(pixelR2.b * 255));
-         this->pixels[i].r = std::clamp(pixelR2.r * 255, (double)0, (double)255);
-         this->pixels[i].g = std::clamp(pixelR2.g * 255, (double)0, (double)255);
-         this->pixels[i].b = std::clamp(pixelR2.b * 255, (double)0, (double)255);
+            this->pixels[i].r = std::clamp(pixelR2.r * 255, (double)0, (double)255);
+            this->pixels[i].g = std::clamp(pixelR2.g * 255, (double)0, (double)255);
+            this->pixels[i].b = std::clamp(pixelR2.b * 255, (double)0, (double)255);
+         }
+         break;
       }
-      break;
-   }
    }
 }
 
@@ -291,7 +291,7 @@ void Image::AdditionalFunction3()
              kernelG = 0,
              kernelB = 0;
 
-         // loop through kernel
+         // loop through kernel (convolution of kernel matrix)
          for (int kernelX = 0; kernelX < kernelSize; kernelX++)
          {
             for (int kernelY = 0; kernelY < kernelSize; kernelY++)
@@ -318,13 +318,15 @@ void Image::AdditionalFunction3()
                }
             }
          }
-         // the new pixel value is the average of the kernel values
+         // Assign the new pixel RGB value to the temporary pixel storage
+         // The kernelSum is the sum of all the kernel values, in this case 16.
          tmp[imgY * this->w + imgX] = Rgb(kernelR / kernelSum, kernelG / kernelSum, kernelB / kernelSum);
       }
    }
    // the new pixel values are copied to the original image
    std::swap(this->pixels, tmp);
    delete[] tmp;
+   tmp = nullptr;
 }
 
 /* Functions used by the GUI - DO NOT MODIFY */

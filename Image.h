@@ -15,15 +15,6 @@
 #include <string.h>
 
 using std::string;
-using std::ifstream;
-using std::ofstream;
-using std::ios;
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::clamp;
-using std::min;
-using std::max;
 
 struct Rgb
 {
