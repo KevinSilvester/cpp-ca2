@@ -41,7 +41,7 @@ bool Image::load(const string &filename)
       }
       ifs.close();
    }
-   catch (const string err)
+   catch (const char* err)
    {
       fprintf(stderr, "Error: %s\n", err);
       ifs.close();
@@ -53,36 +53,34 @@ bool Image::load(const string &filename)
 bool Image::loadRaw(const string &filename)
 {
    std::ifstream ifs;
-   ifs.open(filename, std::ios::binary);
+   ifs.open(filename, std::ios::in);
 
    try
    {
       if (ifs.fail())
          throw "Could not open file";
 
-      string header;
-      int w, h, b;
+      ifs >> this->w >> this->h;
 
-      ifs >> header >> w >> h >> b;
+      if (this->w <= 0 || this->h <= 0)
+         throw "Invalid image size";
 
-      if (strcmp(header.c_str(), "P6") != 0)
-         throw "Not a PPM file";
+      this->pixels = new Rgb[this->w * this->h];
 
-      this->w = w;
-      this->h = h;
-      this->pixels = new Rgb[w * h];
       ifs.ignore(256, '\n');
-      unsigned char pix[3];
+
+      double pix[3];
+
       for (int i = 0; i < this->w * this->h; i++)
       {
-         ifs.read((char *)pix, 3);
-         this->pixels[i].r = pix[0];
-         this->pixels[i].g = pix[1];
-         this->pixels[i].b = pix[2];
+         ifs >> pix[0] >> pix[1] >> pix[2];
+         this->pixels[i].r = (int)std::clamp(pix[0] * 255, 0.0, 255.0);
+         this->pixels[i].g = (int)std::clamp(pix[1] * 255, 0.0, 255.0);
+         this->pixels[i].b = (int)std::clamp(pix[2] * 255, 0.0, 255.0);
       }
       ifs.close();
    }
-   catch (const string err)
+   catch (const char* err)
    {
       fprintf(stderr, "Error: %s\n", err);
       ifs.close();
@@ -117,7 +115,7 @@ bool Image::savePPM(const string &filename)
 
       ofs.close();
    }
-   catch (const string err)
+   catch (const char* err)
    {
       fprintf(stderr, "Error: %s\n", err);
       ofs.close();
