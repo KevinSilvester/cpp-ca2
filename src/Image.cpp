@@ -34,14 +34,14 @@ bool Image::load(const string &filename)
       unsigned char pix[3];
       for (int i = 0; i < w * h; i++)
       {
-         ifs.read(reinterpret_cast<char *>(pix), 3);
+         ifs.read((char *)pix, 3);
          this->pixels[i].r = pix[0];
          this->pixels[i].g = pix[1];
          this->pixels[i].b = pix[2];
       }
       ifs.close();
    }
-   catch (const char *err)
+   catch (const string err)
    {
       fprintf(stderr, "Error: %s\n", err);
       ifs.close();
@@ -75,7 +75,7 @@ bool Image::loadRaw(const string &filename)
       unsigned char pix[3];
       for (int i = 0; i < this->w * this->h; i++)
       {
-         ifs.read(reinterpret_cast<char *>(pix), 3);
+         ifs.read((char *)pix, 3);
          this->pixels[i].r = pix[0];
          this->pixels[i].g = pix[1];
          this->pixels[i].b = pix[2];
@@ -112,7 +112,7 @@ bool Image::savePPM(const string &filename)
          pix[0] = (unsigned char)this->pixels[i].r;
          pix[1] = (unsigned char)this->pixels[i].g;
          pix[2] = (unsigned char)this->pixels[i].b;
-         ofs.write(reinterpret_cast<char *>(pix), 3);
+         ofs.write((char *)pix, 3);
       }
 
       ofs.close();
@@ -157,38 +157,35 @@ void Image::greyScale()
    for (int i = 0; i < this->w * this->h; i++)
    {
       int avg = (this->pixels[i].r + this->pixels[i].g + this->pixels[i].b) / 3;
-      this->pixels[i].r = avg;
-      this->pixels[i].g = avg;
-      this->pixels[i].b = avg;
+      this->pixels[i] = Rgb(avg, avg, avg);
    }
 }
 
 void Image::flipHorizontal()
 {
-   for (int i = 0; i < this->h; i++)
+   for (int i = 0; i < this->w / 2; i++)
    {
-      for (int j = 0; j < this->w / 2; j++)
+      for (int j = 0; j < this->h; j++)
       {
-         int tempIdx = i * this->w + j;
-         int targetIdx = i * this->w + (this->w - j - 1);
+         int l_idx = i + j * this->w;
+         int r_idx = (this->w - i - 1) + j * this->w;
 
-         Rgb temp = this->pixels[tempIdx];
-         this->pixels[tempIdx] = this->pixels[targetIdx];
-         this->pixels[targetIdx] = temp;
+         Rgb temp = this->pixels[l_idx];
+         this->pixels[l_idx] = this->pixels[r_idx];
+         this->pixels[r_idx] = temp;
       }
    }
 }
 
 void Image::flipVertically()
 {
-   int imgPixelCount = this->w * this->h;
-   int pixelsArrLen = imgPixelCount - 1;
+   int len = this->w * this->h;
 
-   for (int i = 0; i < imgPixelCount / 2; i++)
+   for (int i = 0; i < len / 2; i++)
    {
-      Rgb temp = this->pixels[i];
-      this->pixels[i] = this->pixels[pixelsArrLen - i];
-      this->pixels[pixelsArrLen - i] = temp;
+      Rgb tmp = this->pixels[i];
+      this->pixels[i] = this->pixels[len - i - 1];
+      this->pixels[len - i - 1] = tmp;
    }
 }
 
@@ -271,12 +268,12 @@ void Image::AdditionalFunction3()
    //    - https://medium.com/swlh/how-image-blurring-works-652051aee2d1#:~:text=Roughly%20speaking%2C%20blurring%20an%20image,kernel%2C%20to%20the%20image
    //    - https://en.wikipedia.org/wiki/Gaussian_blur
    //    - https://en.wikipedia.org/wiki/Kernel_(image_processing)
-   int kernelSize = 3;
    int kernel[3][3] = {
       {1, 2, 1},
       {2, 4, 2},
       {1, 2, 1}
    };
+   int kernelSize = 3;
    int kernelSum = 16;
 
    // temporary pixel storage to store the new pixel value
@@ -287,9 +284,9 @@ void Image::AdditionalFunction3()
    {
       for (int imgY = 0; imgY < this->h; imgY++)
       {
-         int kernelR = 0,
-             kernelG = 0,
-             kernelB = 0;
+         int R = 0,
+             G = 0,
+             B = 0;
 
          // loop through kernel (convolution of kernel matrix)
          for (int kernelX = 0; kernelX < kernelSize; kernelX++)
@@ -311,15 +308,15 @@ void Image::AdditionalFunction3()
                   Rgb pixel = this->pixels[targetY * this->w + targetX];
                   int kernelValue = kernel[kernelX][kernelY];
 
-                  kernelR += pixel.r * kernelValue;
-                  kernelG += pixel.g * kernelValue;
-                  kernelB += pixel.b * kernelValue;
+                  R += pixel.r * kernelValue;
+                  G += pixel.g * kernelValue;
+                  B += pixel.b * kernelValue;
                }
             }
          }
          // Assign the new pixel RGB value to the temporary pixel storage
          // The kernelSum is the sum of all the kernel values, in this case 16.
-         tmp[imgY * this->w + imgX] = Rgb(kernelR / kernelSum, kernelG / kernelSum, kernelB / kernelSum);
+         tmp[imgY * this->w + imgX] = Rgb(R / kernelSum, G / kernelSum, B / kernelSum);
       }
    }
    // the new pixel values are copied to the original image
