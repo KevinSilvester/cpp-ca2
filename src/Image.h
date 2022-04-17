@@ -13,6 +13,7 @@
 #include <iostream>
 #include <math.h>
 #include <string.h>
+#include <vector>
 
 using std::string;
 
@@ -46,6 +47,12 @@ class Image
       decrease
    };
 
+   enum blur
+   {
+      gaussian,
+      mean
+   };
+
    bool savePPM(const string &filename);
    bool load(const string &filename);
    bool loadRaw(const string &filename);
@@ -57,7 +64,7 @@ class Image
    void flipVertically();
    void AdditionalFunction1();
    void AdditionalFunction2(const brightness &action);
-   void AdditionalFunction3();
+   void AdditionalFunction3(const blur &type);
 
 
 

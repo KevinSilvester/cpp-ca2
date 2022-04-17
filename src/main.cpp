@@ -24,6 +24,8 @@ using std::string;
 #define IDM_FILE_LOAD_RAW 14
 #define IDM_EDIT_AD2_INC 15
 #define IDM_EDIT_AD2_DEC 16
+#define IDM_EDIT_AD3_MEAN 17
+#define IDM_EDIT_AD3_GAUSS 18
 
 string current_file;
 string fileType;
@@ -37,7 +39,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
    HMENU hMenubar = CreateMenu(); // The main menu bar
    HMENU hMenu = CreateMenu();    // the file menu
    HMENU hAlter = CreateMenu();    // the edit menu
-   HMENU hSubMenu = CreatePopupMenu();  // the submenu for the edit menu
+   HMENU hBrightnessSubMenu = CreatePopupMenu();  // the submenu for brightness
+   HMENU hBlurSubMenu = CreatePopupMenu();  // the submenu for blur
 
    // File menu
    AppendMenuW(hMenu, MF_STRING, 2, L"&Open ppm");
@@ -48,8 +51,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
    AppendMenuW(hMenu, MF_STRING, IDM_FILE_QUIT, L"&Quit");
 
    // Brightness menu
-   AppendMenuW(hSubMenu, MF_STRING, IDM_EDIT_AD2_INC, L"&Increase Brightness");
-   AppendMenuW(hSubMenu, MF_STRING, IDM_EDIT_AD2_DEC, L"&Decrease Brightness");
+   AppendMenuW(hBrightnessSubMenu, MF_STRING, IDM_EDIT_AD2_INC, L"&Increase Brightness");
+   AppendMenuW(hBrightnessSubMenu, MF_STRING, IDM_EDIT_AD2_DEC, L"&Decrease Brightness");
+
+   // Blur menu
+   AppendMenuW(hBlurSubMenu, MF_STRING, IDM_EDIT_AD3_MEAN, L"&Mean Blur");
+   AppendMenuW(hBlurSubMenu, MF_STRING, IDM_EDIT_AD3_GAUSS, L"&Gaussian Blur");
 
    // Edit menu
    AppendMenuW(hAlter, MF_STRING, IDM_EDIT_Greyscale, L"&Greyscale");
@@ -60,8 +67,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
    AppendMenuW(hAlter, MF_STRING, IDM_EDIT_FilterBlue, L"&Show Only Blue");
    AppendMenuW(hAlter, MF_SEPARATOR, 0, NULL);
    AppendMenuW(hAlter, MF_STRING, IDM_EDIT_AD1, L"&Additional Function 1 - Negative");
-   AppendMenuW(hAlter, MF_STRING | MF_POPUP, (UINT_PTR)hSubMenu, L"&Additional Function 2 - Brightness");
-   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_AD3, L"&Additional Function 3 - Blur");
+   AppendMenuW(hAlter, MF_STRING | MF_POPUP, (UINT_PTR)hBrightnessSubMenu, L"&Additional Function 2 - Brightness");
+   AppendMenuW(hAlter, MF_STRING | MF_POPUP, (UINT_PTR)hBlurSubMenu, L"&Additional Function 3 - Blur");
 
    // Attach the menus to the menubar
    AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
@@ -129,8 +136,11 @@ void processMenu(HWND hWnd, WPARAM wParam)
    case IDM_EDIT_AD2_DEC:
       image->AdditionalFunction2(image->brightness::decrease);
       break;
-   case IDM_EDIT_AD3:
-      image->AdditionalFunction3();
+   case IDM_EDIT_AD3_MEAN:
+      image->AdditionalFunction3(image->blur::mean);
+      break;
+   case IDM_EDIT_AD3_GAUSS:
+      image->AdditionalFunction3(image->blur::gaussian);
       break;
    case IDM_EDIT_Reset:
       if (fileType == "ppm")

@@ -2,12 +2,6 @@
 // Created by floodd on 23/03/2022.
 //
 #include "Image.h"
-#include <cstring>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-
-Colours *col = new Colours();
 
 bool Image::load(const string &filename)
 {
@@ -20,18 +14,22 @@ bool Image::load(const string &filename)
          throw "Could not open file";
 
       string header;
-      int w, h, b;
+      int b;
 
-      ifs >> header >> w >> h >> b;
+      ifs >> header >> this->w >> this->h >> b;
 
-      if (strcmp(header.c_str(), "P6") != 0)
+      if (strcmp(header.c_str(), "P6") != 0 || b != 255)
          throw "Not a PPM file";
 
-      this->w = w;
-      this->h = h;
-      this->pixels = new Rgb[w * h];
+      if (this->w <= 0 || this->h <= 0)
+         throw "Invalid image size";
+
+      this->pixels = new Rgb[this->w * this->h];
+
       ifs.ignore(256, '\n');
+
       unsigned char pix[3];
+
       for (int i = 0; i < w * h; i++)
       {
          ifs.read((char *)pix, 3);
@@ -222,14 +220,14 @@ void Image::AdditionalFunction2(const brightness &action)
             pixelR.g = (double)this->pixels[i].g / 255;
             pixelR.b = (double)this->pixels[i].b / 255;
 
-            hsv_t pixelH = col->rgb2hsv(pixelR);
+            hsv_t pixelH = Colours::rgb2hsv(pixelR);
             pixelH.v = std::min((double)1, pixelH.v + steps);
 
-            rgb_t pixelR2 = col->hsv2rgb(pixelH);
+            rgb_t pixelR2 = Colours::hsv2rgb(pixelH);
 
-            this->pixels[i].r = std::clamp(pixelR2.r * 255, (double)0, (double)255);
-            this->pixels[i].g = std::clamp(pixelR2.g * 255, (double)0, (double)255);
-            this->pixels[i].b = std::clamp(pixelR2.b * 255, (double)0, (double)255);
+            this->pixels[i].r = (int)std::clamp(pixelR2.r * 255, 0.0, 255.0);
+            this->pixels[i].g = (int)std::clamp(pixelR2.g * 255, 0.0, 255.0);
+            this->pixels[i].b = (int)std::clamp(pixelR2.b * 255, 0.0, 255.0);
          }
          break;
       }
@@ -242,37 +240,52 @@ void Image::AdditionalFunction2(const brightness &action)
             pixelR.g = (double)this->pixels[i].g / 255;
             pixelR.b = (double)this->pixels[i].b / 255;
 
-            hsv_t pixelH = col->rgb2hsv(pixelR);
+            hsv_t pixelH = Colours::rgb2hsv(pixelR);
             pixelH.v = std::max((double)0, pixelH.v - steps);
 
-            rgb_t pixelR2 = col->hsv2rgb(pixelH);
+            rgb_t pixelR2 = Colours::hsv2rgb(pixelH);
 
-            this->pixels[i].r = std::clamp(pixelR2.r * 255, (double)0, (double)255);
-            this->pixels[i].g = std::clamp(pixelR2.g * 255, (double)0, (double)255);
-            this->pixels[i].b = std::clamp(pixelR2.b * 255, (double)0, (double)255);
+            this->pixels[i].r = (int)std::clamp(pixelR2.r * 255, 0.0, 255.0);
+            this->pixels[i].g = (int)std::clamp(pixelR2.g * 255, 0.0, 255.0);
+            this->pixels[i].b = (int)std::clamp(pixelR2.b * 255, 0.0, 255.0);
          }
          break;
       }
    }
 }
 
-void Image::AdditionalFunction3()
+void Image::AdditionalFunction3(const blur &type)
 {
-   // gaussian blur
+   // gaussian + mean blur
 
-   // This is a very basic implementation of a gaussian blur.
+   // This is a very basic implementation of a gaussian + mean blur.
    // references:
    //    - https://youtu.be/C_zFhWdM4ic
    //    - https://medium.com/swlh/how-image-blurring-works-652051aee2d1#:~:text=Roughly%20speaking%2C%20blurring%20an%20image,kernel%2C%20to%20the%20image
    //    - https://en.wikipedia.org/wiki/Gaussian_blur
    //    - https://en.wikipedia.org/wiki/Kernel_(image_processing)
-   int kernel[3][3] = {
-      {1, 2, 1},
-      {2, 4, 2},
-      {1, 2, 1}
-   };
-   int kernelSize = 3;
-   int kernelSum = 16;
+
+   std::vector<std::vector<int>> kernel;
+
+   switch (type)
+   {
+      case blur::mean:
+         kernel = {
+            {1, 1, 1},
+            {1, 1, 1},
+            {1, 1, 1}
+         };
+         break;
+      case blur::gaussian:
+         kernel = {
+            {1, 2, 1},
+            {2, 4, 2},
+            {1, 2, 1}
+         };
+         break;
+   }
+
+   int kernelSize = 3, kernelSum = 0;
 
    // temporary pixel storage to store the new pixel value
    Rgb *tmp = new Rgb[this->w * this->h];
@@ -285,6 +298,8 @@ void Image::AdditionalFunction3()
          int R = 0,
              G = 0,
              B = 0;
+
+         kernelSum = 0;
 
          // loop through kernel (convolution of kernel matrix)
          for (int kernelX = 0; kernelX < kernelSize; kernelX++)
@@ -309,11 +324,12 @@ void Image::AdditionalFunction3()
                   R += pixel.r * kernelValue;
                   G += pixel.g * kernelValue;
                   B += pixel.b * kernelValue;
+                  kernelSum += kernelValue;
                }
             }
          }
          // Assign the new pixel RGB value to the temporary pixel storage
-         // The kernelSum is the sum of all the kernel values, in this case 16.
+         // The kernelSum is the sum of all the kernel values, in this case 16 for gaussian and 9 for mean blur.
          tmp[imgY * this->w + imgX] = Rgb(R / kernelSum, G / kernelSum, B / kernelSum);
       }
    }
