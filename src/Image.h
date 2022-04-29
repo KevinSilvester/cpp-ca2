@@ -11,8 +11,8 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include <vector>
 
 using std::string;
@@ -53,6 +53,13 @@ class Image
       mean
    };
 
+   enum mirror
+   {
+      horizontal,
+      vertical,
+      both
+   };
+
    bool savePPM(const string &filename);
    bool load(const string &filename);
    bool loadRaw(const string &filename);
@@ -64,10 +71,9 @@ class Image
    void flipVertically();
    void AdditionalFunction1();
    void AdditionalFunction2(const brightness &action);
-   void AdditionalFunction3(const blur &type);
-
-
-
+   void AdditionalFunction3(const mirror &orientation);
+   void gammaCorrection();
+   void AdvancedFunction(const blur &type);
    /*Functions used in the GUI - DO NOT MODIFY */
    Rgb *getImage();
    int getWidth();

@@ -18,14 +18,16 @@ using std::string;
 #define IDM_EDIT_FilterGreen 8
 #define IDM_EDIT_FilterBlue 9
 #define IDM_EDIT_Reset 10
-#define IDM_EDIT_AD1 11
-#define IDM_EDIT_AD2 12
-#define IDM_EDIT_AD3 13
-#define IDM_FILE_LOAD_RAW 14
-#define IDM_EDIT_AD2_INC 15
-#define IDM_EDIT_AD2_DEC 16
-#define IDM_EDIT_AD3_MEAN 17
-#define IDM_EDIT_AD3_GAUSS 18
+#define IDM_FILE_LOAD_RAW 11
+#define IDM_EDIT_AD1 12
+#define IDM_EDIT_AD2_INC 13
+#define IDM_EDIT_AD2_DEC 14
+#define IDM_EDIT_AD3_HORIZONTAL 15
+#define IDM_EDIT_AD3_VERTICAL 16
+#define IDM_EDIT_AD3_BOTH 17
+#define IDM_EDIT_GAMMA 18
+#define IDM_EDIT_ADV_MEAN 19
+#define IDM_EDIT_ADV_GAUSS 20
 
 string current_file;
 string fileType;
@@ -40,6 +42,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
    HMENU hMenu = CreateMenu();    // the file menu
    HMENU hAlter = CreateMenu();    // the edit menu
    HMENU hBrightnessSubMenu = CreatePopupMenu();  // the submenu for brightness
+   HMENU hMirrorSubMenu = CreatePopupMenu();  // the submenu for mirroring
    HMENU hBlurSubMenu = CreatePopupMenu();  // the submenu for blur
 
    // File menu
@@ -54,9 +57,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
    AppendMenuW(hBrightnessSubMenu, MF_STRING, IDM_EDIT_AD2_INC, L"&Increase Brightness");
    AppendMenuW(hBrightnessSubMenu, MF_STRING, IDM_EDIT_AD2_DEC, L"&Decrease Brightness");
 
+   // Mirror menu
+   AppendMenuW(hMirrorSubMenu, MF_STRING, IDM_EDIT_AD3_HORIZONTAL, L"&Horizontal");
+   AppendMenuW(hMirrorSubMenu, MF_STRING, IDM_EDIT_AD3_VERTICAL, L"&Vertical");
+   AppendMenuW(hMirrorSubMenu, MF_STRING, IDM_EDIT_AD3_BOTH, L"&Both");
+
    // Blur menu
-   AppendMenuW(hBlurSubMenu, MF_STRING, IDM_EDIT_AD3_MEAN, L"&Mean Blur");
-   AppendMenuW(hBlurSubMenu, MF_STRING, IDM_EDIT_AD3_GAUSS, L"&Gaussian Blur");
+   AppendMenuW(hBlurSubMenu, MF_STRING, IDM_EDIT_ADV_MEAN, L"&Mean Blur");
+   AppendMenuW(hBlurSubMenu, MF_STRING, IDM_EDIT_ADV_GAUSS, L"&Gaussian Blur");
 
    // Edit menu
    AppendMenuW(hAlter, MF_STRING, IDM_EDIT_Greyscale, L"&Greyscale");
@@ -65,10 +73,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
    AppendMenuW(hAlter, MF_STRING, IDM_EDIT_FilterRed, L"&Show Only Red");
    AppendMenuW(hAlter, MF_STRING, IDM_EDIT_FilterGreen, L"&Show Only Green");
    AppendMenuW(hAlter, MF_STRING, IDM_EDIT_FilterBlue, L"&Show Only Blue");
+
    AppendMenuW(hAlter, MF_SEPARATOR, 0, NULL);
+
    AppendMenuW(hAlter, MF_STRING, IDM_EDIT_AD1, L"&Additional Function 1 - Negative");
    AppendMenuW(hAlter, MF_STRING | MF_POPUP, (UINT_PTR)hBrightnessSubMenu, L"&Additional Function 2 - Brightness");
-   AppendMenuW(hAlter, MF_STRING | MF_POPUP, (UINT_PTR)hBlurSubMenu, L"&Additional Function 3 - Blur");
+   AppendMenuW(hAlter, MF_STRING | MF_POPUP, (UINT_PTR)hMirrorSubMenu, L"&Additional Function 3 - Mirror");
+
+   AppendMenuW(hAlter, MF_SEPARATOR, 0, NULL);
+
+   AppendMenuW(hAlter, MF_STRING, IDM_EDIT_GAMMA, L"&Gamma Correction");
+   AppendMenuW(hAlter, MF_STRING | MF_POPUP, (UINT_PTR)hBlurSubMenu, L"&Advanced Feature - Blur");
 
    // Attach the menus to the menubar
    AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
@@ -136,11 +151,23 @@ void processMenu(HWND hWnd, WPARAM wParam)
    case IDM_EDIT_AD2_DEC:
       image->AdditionalFunction2(image->brightness::decrease);
       break;
-   case IDM_EDIT_AD3_MEAN:
-      image->AdditionalFunction3(image->blur::mean);
+   case IDM_EDIT_AD3_HORIZONTAL:
+      image->AdditionalFunction3(image->mirror::horizontal);
       break;
-   case IDM_EDIT_AD3_GAUSS:
-      image->AdditionalFunction3(image->blur::gaussian);
+   case IDM_EDIT_AD3_VERTICAL:
+      image->AdditionalFunction3(image->mirror::vertical);
+      break;
+   case IDM_EDIT_AD3_BOTH:
+      image->AdditionalFunction3(image->mirror::both);
+      break;
+   case IDM_EDIT_GAMMA:
+      image->gammaCorrection();
+      break;
+   case IDM_EDIT_ADV_MEAN:
+      image->AdvancedFunction(image->blur::mean);
+      break;
+   case IDM_EDIT_ADV_GAUSS:
+      image->AdvancedFunction(image->blur::gaussian);
       break;
    case IDM_EDIT_Reset:
       if (fileType == "ppm")

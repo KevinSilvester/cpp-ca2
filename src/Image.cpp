@@ -254,7 +254,69 @@ void Image::AdditionalFunction2(const brightness &action)
    }
 }
 
-void Image::AdditionalFunction3(const blur &type)
+void Image::AdditionalFunction3(const mirror &orientation)
+{
+   switch (orientation)
+   {
+      case mirror::horizontal:
+      {
+         for (int i = 0; i < this->w / 2; i++)
+         {
+            for (int j = 0; j < this->h; j++)
+            {
+               int l_idx = i + j * this->w;
+               int r_idx = (this->w - i - 1) + j * this->w;
+
+               this->pixels[r_idx] = this->pixels[l_idx];
+            }
+         }
+         break;
+      }
+      case mirror::vertical:
+      {
+         int p_total = this->w * this->h;
+
+         for (int i = 0; i < p_total / 2; i++)
+         {
+            this->pixels[p_total - i - 1] = this->pixels[i];
+         }
+
+         for (int i = 0; i < this->w / 2; i++)
+         {
+            for (int j = this->h / 2; j < this->h; j++)
+            {
+               int l_idx = i + j * this->w;
+               int r_idx = (this->w - i - 1) + j * this->w;
+
+               Rgb temp = this->pixels[l_idx];
+               this->pixels[l_idx] = this->pixels[r_idx];
+               this->pixels[r_idx] = temp;
+            }
+         }
+         break;
+      }
+      case mirror::both:
+      {
+         this->AdditionalFunction3(mirror::horizontal);
+         this->AdditionalFunction3(mirror::vertical);
+         break;
+      }
+   }
+}
+
+void Image::gammaCorrection()
+{
+   float gamma = 2 / 3.2;
+
+   for (int i = 0; i < w * h; i++)
+   {
+      this->pixels[i].r  = std::pow(pixels[i].r / 255.0f, gamma) * 255;
+      this->pixels[i].g  = std::pow(pixels[i].g / 255.0f, gamma) * 255;
+      this->pixels[i].b  = std::pow(pixels[i].b / 255.0f, gamma) * 255;
+   }
+}
+
+void Image::AdvancedFunction(const blur &type)
 {
    // gaussian + mean blur
 
@@ -269,20 +331,20 @@ void Image::AdditionalFunction3(const blur &type)
 
    switch (type)
    {
-      case blur::mean:
-         kernel = {
-            {1, 1, 1},
-            {1, 1, 1},
-            {1, 1, 1}
-         };
-         break;
-      case blur::gaussian:
-         kernel = {
-            {1, 2, 1},
-            {2, 4, 2},
-            {1, 2, 1}
-         };
-         break;
+   case blur::mean:
+      kernel = {
+         {1, 1, 1},
+         {1, 1, 1},
+         {1, 1, 1}
+      };
+      break;
+   case blur::gaussian:
+      kernel = {
+         {1, 2, 1},
+         {2, 4, 2},
+         {1, 2, 1}
+      };
+      break;
    }
 
    int kernelSize = 3, kernelSum = 0;

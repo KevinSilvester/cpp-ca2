@@ -2,7 +2,7 @@
 
 // Reference: https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
 
-Colours::Colours() {}
+Colours::Colours() = default;
 
 rgb_t Colours::hsv2rgb(hsv_t in)
 {
