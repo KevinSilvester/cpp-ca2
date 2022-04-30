@@ -306,6 +306,7 @@ void Image::AdditionalFunction3(const mirror &orientation)
 
 void Image::gammaCorrection()
 {
+   // reference: https://lindevs.com/apply-gamma-correction-to-an-image-using-opencv/
    float gamma = 2 / 3.2;
 
    for (int i = 0; i < w * h; i++)
